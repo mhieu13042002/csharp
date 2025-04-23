@@ -1,0 +1,336 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp6
+{
+    class Product
+    {
+        public string MaSP { get; set; }
+        public string TenSP { get; set; }
+        public string LoaiSP { get; set; }
+        public int SoLuongTon { get; set; }
+        public double GiaBan { get; set; }
+        public string NhaCungCap { get; set; }
+        public bool TrangThai => SoLuongTon > 0; // TRUE: còn hàng, FALSE: hết hàng
+    }
+    class Node
+    {
+        public Product Data;
+        public Node Next;
+
+        public Node(Product data)
+        {
+            Data = data;
+            Next = null;
+        }
+    }
+
+    class ProductList
+    {
+        private Node head;
+
+        // 1. Khởi tạo danh sách
+        public ProductList()
+        {
+            head = null;
+        }
+
+        // 2a. Thêm vào đầu danh sách
+        public void AddFirst(Product product)
+        {
+            Node newNode = new Node(product);
+            newNode.Next = head;
+            head = newNode;
+        }
+
+        // 2b. Thêm sau một mã sản phẩm
+        public bool AddAfter(string maSP, Product product)
+        {
+            Node current = head;
+            while (current != null && current.Data.MaSP != maSP)
+                current = current.Next;
+
+            if (current == null) return false;
+
+            Node newNode = new Node(product);
+            newNode.Next = current.Next;
+            current.Next = newNode;
+            return true;
+        }
+
+        // 2c. Thêm vào cuối danh sách
+        public void AddLast(Product product)
+        {
+            Node newNode = new Node(product);
+            if (head == null)
+            {
+                head = newNode;
+                return;
+            }
+
+            Node current = head;
+            while (current.Next != null)
+                current = current.Next;
+
+            current.Next = newNode;
+        }
+
+        // 3a. Xóa theo mã sản phẩm
+        public bool RemoveByMaSP(string maSP)
+        {
+            if (head == null) return false;
+            if (head.Data.MaSP == maSP)
+            {
+                head = head.Next;
+                return true;
+            }
+
+            Node current = head;
+            while (current.Next != null && current.Next.Data.MaSP != maSP)
+                current = current.Next;
+
+            if (current.Next == null) return false;
+            current.Next = current.Next.Next;
+            return true;
+        }
+
+        // 3b. Xóa theo tên sản phẩm
+        public bool RemoveByTenSP(string tenSP)
+        {
+            if (head == null) return false;
+            if (head.Data.TenSP == tenSP)
+            {
+                head = head.Next;
+                return true;
+            }
+
+            Node current = head;
+            while (current.Next != null && current.Next.Data.TenSP != tenSP)
+                current = current.Next;
+
+            if (current.Next == null) return false;
+            current.Next = current.Next.Next;
+            return true;
+        }
+
+        // 3c. Xóa theo vị trí
+        public bool RemoveAt(int index)
+        {
+            if (index < 0 || head == null) return false;
+            if (index == 0)
+            {
+                head = head.Next;
+                return true;
+            }
+
+            Node current = head;
+            for (int i = 0; i < index - 1 && current.Next != null; i++)
+                current = current.Next;
+
+            if (current.Next == null) return false;
+            current.Next = current.Next.Next;
+            return true;
+        }
+
+        // 4a. Tìm kiếm theo tên
+        public List<Product> FindByTenSP(string tenSP)
+        {
+            List<Product> result = new List<Product>();
+            Node current = head;
+            while (current != null)
+            {
+                if (current.Data.TenSP == tenSP)
+                    result.Add(current.Data);
+                current = current.Next;
+            }
+            return result;
+        }
+
+        // 4b. Tìm kiếm theo loại
+        public List<Product> FindByLoaiSP(string loaiSP)
+        {
+            List<Product> result = new List<Product>();
+            Node current = head;
+            while (current != null)
+            {
+                if (current.Data.LoaiSP == loaiSP)
+                    result.Add(current.Data);
+                current = current.Next;
+            }
+            return result;
+        }
+
+        // 5a. Xem toàn bộ danh sách
+        public List<Product> GetAll()
+        {
+            List<Product> result = new List<Product>();
+            Node current = head;
+            while (current != null)
+            {
+                result.Add(current.Data);
+                current = current.Next;
+            }
+            return result;
+        }
+
+        // 5b. Xem những sản phẩm còn hàng
+        public List<Product> GetConHang()
+        {
+            return GetAll().Where(p => p.TrangThai).ToList();
+        }
+
+        // 5c. Xem sản phẩm theo loại
+        public List<Product> GetByLoaiSP(string loaiSP)
+        {
+            return GetAll().Where(p => p.LoaiSP == loaiSP).ToList();
+        }
+
+        // 5d. Xem danh sách theo giá
+        public List<Product> GetSortedByGia(bool ascending = true)
+        {
+            return ascending
+                ? GetAll().OrderBy(p => p.GiaBan).ToList()
+                : GetAll().OrderByDescending(p => p.GiaBan).ToList();
+        }
+    }
+
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            ProductList dsSanPham = new ProductList();
+            int luaChon;
+
+            do
+            {
+                Console.WriteLine("\n====== MENU ======");
+                Console.WriteLine("1. Them san pham vao đau danh sach");
+                Console.WriteLine("2. Them san pham vao sau ma san pham");
+                Console.WriteLine("3. Them san pham vao cuoi danh sach");
+                Console.WriteLine("4. Xoa san pham theo ma");
+                Console.WriteLine("5. Xoa san pham theo ten");
+                Console.WriteLine("6. Xoa san pham tai vi tri");
+                Console.WriteLine("7. Tim theo ten");
+                Console.WriteLine("8. Tim theo loai");
+                Console.WriteLine("9. Xem toan bo danh sach");
+                Console.WriteLine("10. Xem san pham con hang");
+                Console.WriteLine("11. Xem san pham theo loai");
+                Console.WriteLine("12. Xem san pham theo gia (tang/giam)");
+                Console.WriteLine("0. Thoat");
+                Console.Write("Chon: ");
+                luaChon = int.Parse(Console.ReadLine());
+
+                switch (luaChon)
+                {
+                    case 1:
+                        dsSanPham.AddFirst(NhapSanPham());
+                        break;
+                    case 2:
+                        Console.Write("Nhap ma san pham sau đo them: ");
+                        string maSau = Console.ReadLine();
+                        if (!dsSanPham.AddAfter(maSau, NhapSanPham()))
+                            Console.WriteLine("Khong tim thay ma san pham.");
+                        break;
+                    case 3:
+                        dsSanPham.AddLast(NhapSanPham());
+                        break;
+                    case 4:
+                        Console.Write("Nhap ma san pham can xoa: ");
+                        string maXoa = Console.ReadLine();
+                        if (!dsSanPham.RemoveByMaSP(maXoa))
+                            Console.WriteLine("Khong tim thay san pham đe xoa.");
+                        break;
+                    case 5:
+                        Console.Write("Nhap ten san pham can xoa: ");
+                        string tenXoa = Console.ReadLine();
+                        if (!dsSanPham.RemoveByTenSP(tenXoa))
+                            Console.WriteLine("Khong tim thay san pham đe xoa.");
+                        break;
+                    case 6:
+                        Console.Write("Nhap vi tri can xoa: ");
+                        int viTri = int.Parse(Console.ReadLine());
+                        if (!dsSanPham.RemoveAt(viTri))
+                            Console.WriteLine("Vi tri khong hop le.");
+                        break;
+                    case 7:
+                        Console.Write("Nhap ten san pham can tim: ");
+                        string tenTim = Console.ReadLine();
+                        XuatDanhSach(dsSanPham.FindByTenSP(tenTim));
+                        break;
+                    case 8:
+                        Console.Write("Nhap loai san pham can tim: ");
+                        string loaiTim = Console.ReadLine();
+                        XuatDanhSach(dsSanPham.FindByLoaiSP(loaiTim));
+                        break;
+                    case 9:
+                        XuatDanhSach(dsSanPham.GetAll());
+                        break;
+                    case 10:
+                        XuatDanhSach(dsSanPham.GetConHang());
+                        break;
+                    case 11:
+                        Console.Write("Nhap loai san pham can xem: ");
+                        string loaiXem = Console.ReadLine();
+                        XuatDanhSach(dsSanPham.GetByLoaiSP(loaiXem));
+                        break;
+                    case 12:
+                        Console.Write("Sap xep theo gia (1: tăng, 0: giam): ");
+                        bool tang = Console.ReadLine() == "1";
+                        XuatDanhSach(dsSanPham.GetSortedByGia(tang));
+                        break;
+                    case 0:
+                        Console.WriteLine("Đa thoat.");
+                        break;
+                    default:
+                        Console.WriteLine("Lua chon khong hop le!");
+                        break;
+                }
+
+            } while (luaChon != 0);
+        }
+
+        static Product NhapSanPham()
+        {
+            Console.Write("Ma san pham: ");
+            string ma = Console.ReadLine();
+            Console.Write("Ten san pham: ");
+            string ten = Console.ReadLine();
+            Console.Write("Loai san pham: ");
+            string loai = Console.ReadLine();
+            Console.Write("So luong ton kho: ");
+            int sl = int.Parse(Console.ReadLine());
+            Console.Write("Gia ban: ");
+            double gia = double.Parse(Console.ReadLine());
+            Console.Write("Nha cung cap: ");
+            string ncc = Console.ReadLine();
+
+            return new Product
+            {
+                MaSP = ma,
+                TenSP = ten,
+                LoaiSP = loai,
+                SoLuongTon = sl,
+                GiaBan = gia,
+                NhaCungCap = ncc
+            };
+        }
+
+        static void XuatDanhSach(List<Product> ds)
+        {
+            if (ds.Count == 0)
+            {
+                Console.WriteLine("Khong co san pham nao.");
+                return;
+            }
+
+            Console.WriteLine("\n--- Danh sach san pham ---");
+            foreach (var sp in ds)
+            {
+                Console.WriteLine($"Ma: {sp.MaSP}, Ten: {sp.TenSP}, Loai: {sp.LoaiSP}, So luong: {sp.SoLuongTon}, Gia: {sp.GiaBan}, NCC: {sp.NhaCungCap}, Trang thai: {(sp.TrangThai ? "Con hang" : "Het hang")}");
+            }
+        }
+    }
+}
